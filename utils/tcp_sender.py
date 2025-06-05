@@ -1,31 +1,60 @@
-# type: ignore
-from scapy.all import *
-import hashlib
-import time
+import socket
+import os
 
-def checksum(data):
-    return hashlib.sha256(data).hexdigest()
+def tcp_send(filename: str, ip: str, port: int, fragment: int):
 
-def tcp_send(input_file: str, server_ip: str, server_port: int, fragment_size: int):
-    with open(input_file, "rb") as f:
-        file_data = f.read()
+    # Dosya kontrolü
+    if not os.path.exists(filename) and not os.path.isfile(filename):
+        print(f"Hata: {filename} dosyası bulunamadı!")
+        return
     
-    fragments = [file_data[i:i+fragment_size] for i in range(0, len(file_data), fragment_size)]
+    # Dosya bilgilerini al
+    filesize = os.path.getsize(filename)
+
+    # Socket oluştur
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
-    for idx, fragment in enumerate(fragments):
-        frag_id_bytes = idx.to_bytes(4, 'big')
-        frag_checksum = checksum(fragment).encode()
-        payload = frag_id_bytes + frag_checksum + fragment
+    try:
+        # Sunucuya bağlan
+        client_socket.connect((ip, port))
+        print(f"Sunucuya bağlandı: {ip}:{port}")
         
-        packet = IP(dst=server_ip)/TCP(dport=server_port, sport=RandShort(), flags='PA')/payload
-        send(packet, verbose=False)
-        print(f"[+] Sent fragment {idx}")
-        time.sleep(0.05)
+        # Dosya bilgilerini gönder
+        info = f"{filename}|{filesize}|{fragment}|"
+        info_bytes = info.encode('utf-8')
+        length = len(info_bytes)
 
-    # After all fragments, send END packet
-    end_packet = IP(dst=server_ip)/TCP(dport=server_port, sport=RandShort(), flags='PA')/b"END"
-    send(end_packet, verbose=False)
-    print("[+] End of file transfer sent.")
+        if length < 1024:
+            padding = 1024 - length
+            info_padded = info_bytes + b'a' * padding
+        else:
+            info_padded = info_bytes[:1024]  # Fazlaysa kes
+
+        client_socket.send(info_padded)
+        
+        print(f"Gönderilen dosya: {filename}")
+        print(f"Dosya boyutu: {filesize} bytes")
+        print(f"Dosya parça boyutu: {fragment} bytes")
+        
+        # Dosyayı gönder
+        with open(filename, 'rb') as file:
+            bytes_sent = 0
+            while bytes_sent < filesize:
+                data = file.read(fragment)
+                if not data:
+                    break
+                client_socket.send(data)
+                bytes_sent += len(data)
+                
+                # İlerleme göster
+                progress = (bytes_sent / filesize) * 100
+                print(f"\rİlerleme: {progress:.1f}%", end='', flush=True)
+        
+        print(f"\nDosya başarıyla gönderildi!")
+    except Exception as e:
+        print(f"Hata: {e}")
+    finally:
+        client_socket.close()
 
 if __name__ == "__main__":
-    tcp_send(input_file="data.txt", server_ip="192.168.0.1", server_port=12345, fragment_size=1024)
+    tcp_send("test.txt", "localhost", 12345, 1024)

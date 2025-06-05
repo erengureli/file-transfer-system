@@ -22,15 +22,15 @@ def main(file: str, protocol: bool, mode: bool, recursive: bool, server_ip: str,
     if(protocol):
         if(mode):
             from utils.tcp_sender import tcp_send
-            tcp_send(input_file=file, server_ip=server_ip, server_port=server_port, fragment_size=fragment_size)
+            tcp_send(filename=file, ip=server_ip, port=server_port, fragment=fragment_size)
         else:
-            from utils.tcp_receiver import tcp_receiv
+            from utils.tcp_receiver import tcp_receive
             if(recursive):
                 while(True):
-                    tcp_receiv(output_file=file, server_port=server_port)
+                    tcp_receive(foldername=file, ip=server_ip, port=server_port)
                     time.sleep(0.05)
             else:
-                tcp_receiv(output_file=file, server_port=server_port)
+                tcp_receive(foldername=file, ip=server_ip, port=server_port)
     else:
         if(mode):
             print("send")
