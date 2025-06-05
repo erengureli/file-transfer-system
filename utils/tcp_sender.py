@@ -2,7 +2,6 @@ import socket
 import os
 
 def tcp_send(filename: str, ip: str, port: int, fragment: int):
-
     # Dosya kontrolü
     if not os.path.exists(filename) and not os.path.isfile(filename):
         print(f"Hata: {filename} dosyası bulunamadı!")

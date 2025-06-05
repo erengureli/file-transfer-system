@@ -2,11 +2,13 @@ import socket
 import os
 
 def tcp_receive(foldername: str, ip: str, port: int):
-
     # Klasör kontrolü
-    if not os.path.exists(foldername) and not os.path.isdir(foldername):
-        print(f"Hata: {foldername} klasör bulunamadı!")
-        return
+    if not os.path.exists(foldername):
+        os.makedirs(foldername)
+        print(f"Klasör oluşturuldu: {foldername}")
+    elif not os.path.isdir(foldername):
+        print(f"Hata: {foldername} bir klasör değil!")
+        return  
 
     # Socket oluştur
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
