@@ -25,7 +25,12 @@ def main():
     args = parser.parse_args()
 
     if args.tcp == True:
-        print("TCP")
+        if args.send == True:
+            from utils.tcp_sender import tcp_send
+            tcp_send(args.path, args.ip, args.port, args.fragment)
+        else:
+            from utils.tcp_receiver import tcp_receive
+            tcp_receive(args.path, args.port)
     elif args.udp == True:
         print("UDP")
     else:
