@@ -19,7 +19,7 @@ def tcp_send(filename: str, ip: str, port: int, fragment: int):
         print(f"Sunucuya bağlandı: {ip}:{port}")
         
         # Send file data
-        info = f"{filename}|{filesize}|{fragment}|"
+        info = f"{os.path.basename(filename)}|{filesize}|{fragment}|"
         info_bytes = info.encode('utf-8')
         length = len(info_bytes)
 
