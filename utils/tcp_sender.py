@@ -7,8 +7,8 @@ def tcp_send(filepath: str, ip: str, port: int, fragment: int):
         print(f"HATA: {filepath} dosyası bulunamadı!")
         return
     
-    if not os.access(filename, os.R_OK):
-        print(f"HATA: {filename} dosyası okunamıyor!")
+    if not os.access(filepath, os.R_OK):
+        print(f"HATA: {filepath} dosyası okunamıyor!")
         return
 
     # Get file data
