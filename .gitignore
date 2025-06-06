@@ -174,5 +174,5 @@ cython_debug/
 .pypirc
 
 # Others
-data
-test.txt
+input
+output
