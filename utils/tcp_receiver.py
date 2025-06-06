@@ -1,6 +1,7 @@
 import socket
 import select
 import os
+import hashlib
 
 def tcp_receive(folderpath: str, port: int):
     # Dir check
@@ -30,19 +31,21 @@ def tcp_receive(folderpath: str, port: int):
 
                 # Accept Connection
                 client_socket, address = server_socket.accept()
-                print(f"Bağlantı kabul edildi: {address}")
+                print(f"\nBağlantı kabul edildi: {address}")
                 
                 # Get file data
                 data = client_socket.recv(1024).decode('utf-8')
-                filename, filesize, fragment, *_ = data.split('|')
+                filename, filesize, fragment, checksum, *_ = data.split('|')
                 filesize = int(filesize)
                 fragment = int(fragment)
 
                 print(f"Alınacak dosya: {filename}")
                 print(f"Dosya boyutu: {filesize} bytes")
                 print(f"Dosya parça boyutu: {fragment} bytes")
+                print(f"Beklenen checksum: {checksum}")
                 
-                # Save file
+                # Save file and calculate checksum
+                file_hash = hashlib.md5()
                 with open(folderpath + filename, 'wb') as file:
                     bytes_received = 0
                     while bytes_received < filesize:
@@ -50,17 +53,26 @@ def tcp_receive(folderpath: str, port: int):
                         if not data:
                             break
                         file.write(data)
+                        file_hash.update(data)
                         bytes_received += len(data)
                         
                         progress = (bytes_received / filesize) * 100
                         print(f"\rİlerleme: {progress:.1f}%", end='', flush=True)
                 
-                print(f"\nDosya başarıyla alındı: {filename}")
+                # Verify file integrity
+                received_checksum = file_hash.hexdigest()
+                if received_checksum == checksum:
+                    print(f"\rDosya başarıyla alındı ve doğrulandı: {filename}")
+                else:
+                    print(f"\rHATA: Dosya bozuk! Beklenen: {checksum}, Alınan: {received_checksum}")
+                    os.remove(folderpath + filename)
+                    print(f"Bozuk dosya silindi: {filename}")
+                    
             except KeyboardInterrupt:
                 print("Sunucu kapatılıyor...")
                 break
             except Exception as e:
-                print(f"Dosya alma hatası: {e}")
+                print(f"HATA: {e}")
             finally:
                 if 'client_socket' in locals():
                     client_socket.close()
@@ -71,4 +83,4 @@ def tcp_receive(folderpath: str, port: int):
         server_socket.close()
 
 if __name__ == "__main__":
-    tcp_receive("output/", "localhost", 12345)
+    tcp_receive("output/", 12345)

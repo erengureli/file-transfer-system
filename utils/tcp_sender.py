@@ -1,5 +1,6 @@
 import socket
 import os
+import hashlib
 
 def tcp_send(filepath: str, ip: str, port: int, fragment: int):
     # File check
@@ -11,9 +12,16 @@ def tcp_send(filepath: str, ip: str, port: int, fragment: int):
         print(f"HATA: {filepath} dosyası okunamıyor!")
         return
 
-    # Get file data
+    # Get file data and calculate checksum
     filesize = os.path.getsize(filepath)
     filename = os.path.basename(filepath)
+    
+    # Calculate file checksum
+    file_hash = hashlib.md5()
+    with open(filepath, 'rb') as file:
+        for chunk in iter(lambda: file.read(4096), b""):
+            file_hash.update(chunk)
+    checksum = file_hash.hexdigest()
 
     # Create Socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -21,10 +29,10 @@ def tcp_send(filepath: str, ip: str, port: int, fragment: int):
     try:
         # Connect Server
         client_socket.connect((ip, port))
-        print(f"Sunucuya bağlandı: {ip}:{port}")
+        print(f"\nSunucuya bağlandı: {ip}:{port}")
         
-        # Send file data
-        info = f"{filename}|{filesize}|{fragment}|"
+        # Send file data with checksum
+        info = f"{filename}|{filesize}|{fragment}|{checksum}|"
         info_bytes = info.encode('utf-8')
         length = len(info_bytes)
 
@@ -39,6 +47,7 @@ def tcp_send(filepath: str, ip: str, port: int, fragment: int):
         print(f"Gönderilen dosya: {filename}")
         print(f"Dosya boyutu: {filesize} bytes")
         print(f"Dosya parça boyutu: {fragment} bytes")
+        print(f"Dosya checksum: {checksum}")
         
         # Send File
         with open(filepath, 'rb') as file:
@@ -53,7 +62,7 @@ def tcp_send(filepath: str, ip: str, port: int, fragment: int):
                 progress = (bytes_sent / filesize) * 100
                 print(f"\rİlerleme: {progress:.1f}%", end='', flush=True)
         
-        print(f"\nDosya başarıyla gönderildi!")
+        print(f"\rDosya başarıyla gönderildi!")
     except Exception as e:
         print(f"HATA: {e}")
     finally:
