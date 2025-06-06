@@ -2,23 +2,23 @@ import socket
 import os
 
 def tcp_send(filename: str, ip: str, port: int, fragment: int):
-    # Dosya kontrolü
+    # File check
     if not os.path.exists(filename) and not os.path.isfile(filename):
         print(f"Hata: {filename} dosyası bulunamadı!")
         return
     
-    # Dosya bilgilerini al
+    # Get file data
     filesize = os.path.getsize(filename)
 
-    # Socket oluştur
+    # Create Socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     try:
-        # Sunucuya bağlan
+        # Sonnect Server
         client_socket.connect((ip, port))
         print(f"Sunucuya bağlandı: {ip}:{port}")
         
-        # Dosya bilgilerini gönder
+        # Send file data
         info = f"{filename}|{filesize}|{fragment}|"
         info_bytes = info.encode('utf-8')
         length = len(info_bytes)
@@ -27,7 +27,7 @@ def tcp_send(filename: str, ip: str, port: int, fragment: int):
             padding = 1024 - length
             info_padded = info_bytes + b'a' * padding
         else:
-            info_padded = info_bytes[:1024]  # Fazlaysa kes
+            info_padded = info_bytes[:1024]
 
         client_socket.send(info_padded)
         
@@ -35,7 +35,7 @@ def tcp_send(filename: str, ip: str, port: int, fragment: int):
         print(f"Dosya boyutu: {filesize} bytes")
         print(f"Dosya parça boyutu: {fragment} bytes")
         
-        # Dosyayı gönder
+        # Send File
         with open(filename, 'rb') as file:
             bytes_sent = 0
             while bytes_sent < filesize:
@@ -45,7 +45,6 @@ def tcp_send(filename: str, ip: str, port: int, fragment: int):
                 client_socket.send(data)
                 bytes_sent += len(data)
                 
-                # İlerleme göster
                 progress = (bytes_sent / filesize) * 100
                 print(f"\rİlerleme: {progress:.1f}%", end='', flush=True)
         

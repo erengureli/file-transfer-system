@@ -1,8 +1,9 @@
 import socket
+import select
 import os
 
-def tcp_receive(foldername: str, ip: str, port: int):
-    # Klasör kontrolü
+def tcp_receive(foldername: str, port: int):
+    # Dir check
     if not os.path.exists(foldername):
         os.makedirs(foldername)
         print(f"Klasör oluşturuldu: {foldername}")
@@ -10,49 +11,63 @@ def tcp_receive(foldername: str, ip: str, port: int):
         print(f"Hata: {foldername} bir klasör değil!")
         return  
 
-    # Socket oluştur
+    # Create Socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     try:
-        # Bağlantıyı dinle
-        server_socket.bind((ip, port))
+        # Listen Connection
+        server_socket.bind(("0.0.0.0", port))
         server_socket.listen(1)
-        print(f"Sunucu {ip}:{port} adresinde dinleniyor...")
+        print(f"Sunucu localhost:{port} adresinde dinleniyor...")
         
-        # Bağlantı kabul et
-        client_socket, address = server_socket.accept()
-        print(f"Bağlantı kabul edildi: {address}")
-        
-        # Dosya bilgilerini al
-        data = client_socket.recv(1024).decode('utf-8')
-        filename, filesize, fragment, *_ = data.split('|')
-        filesize = int(filesize)
-        fragment = int(fragment)
-
-        print(f"Alınacak dosya: {filename}")
-        print(f"Dosya boyutu: {filesize} bytes")
-        print(f"Dosya parça boyutu: {fragment} bytes")
-        
-        # Dosyayı kaydet
-        with open(foldername + filename, 'wb') as file:
-            bytes_received = 0
-            while bytes_received < filesize:
-                data = client_socket.recv(1024)
-                if not data:
-                    break
-                file.write(data)
-                bytes_received += len(data)
+        while True:
+            try:
+                ready, _, _ = select.select([server_socket], [], [], 1.0)
                 
-                # İlerleme göster
-                progress = (bytes_received / filesize) * 100
-                print(f"\rİlerleme: {progress:.1f}%", end='', flush=True)
-        
-        print(f"\nDosya başarıyla alındı: {filename}")
+                if not ready:
+                    continue
+
+                # Accept Connection
+                client_socket, address = server_socket.accept()
+                print(f"Bağlantı kabul edildi: {address}")
+                
+                # Get file data
+                data = client_socket.recv(1024).decode('utf-8')
+                filename, filesize, fragment, *_ = data.split('|')
+                filesize = int(filesize)
+                fragment = int(fragment)
+
+                print(f"Alınacak dosya: {filename}")
+                print(f"Dosya boyutu: {filesize} bytes")
+                print(f"Dosya parça boyutu: {fragment} bytes")
+                
+                # Save file
+                with open(foldername + filename, 'wb') as file:
+                    bytes_received = 0
+                    while bytes_received < filesize:
+                        data = client_socket.recv(1024)
+                        if not data:
+                            break
+                        file.write(data)
+                        bytes_received += len(data)
+                        
+                        progress = (bytes_received / filesize) * 100
+                        print(f"\rİlerleme: {progress:.1f}%", end='', flush=True)
+                
+                print(f"\nDosya başarıyla alındı: {filename}")
+            except KeyboardInterrupt:
+                print("Sunucu kapatılıyor...")
+                break
+            except Exception as e:
+                print(f"Dosya alma hatası: {e}")
+            finally:
+                if 'client_socket' in locals():
+                    client_socket.close()
+                    
     except Exception as e:
-        print(f"Hata: {e}")
+        print(f"Sunucu hatası: {e}")
     finally:
-        client_socket.close()
         server_socket.close()
 
 if __name__ == "__main__":
