@@ -29,7 +29,7 @@ def tcp_send(filepath: str, ip: str, port: int, fragment: int):
     try:
         # Connect Server
         client_socket.connect((ip, port))
-        print(f"\nSunucuya bağlandı: {ip}:{port}")
+        print(f"Sunucuya bağlandı: {ip}:{port}")
         
         # Send file data with checksum
         info = f"{filename}|{filesize}|{fragment}|{checksum}|"
