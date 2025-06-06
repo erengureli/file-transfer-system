@@ -1,25 +1,30 @@
 import socket
 import os
 
-def tcp_send(filename: str, ip: str, port: int, fragment: int):
+def tcp_send(filepath: str, ip: str, port: int, fragment: int):
     # File check
-    if not os.path.exists(filename) and not os.path.isfile(filename):
-        print(f"Hata: {filename} dosyası bulunamadı!")
+    if not os.path.exists(filepath) and not os.path.isfile(filepath):
+        print(f"HATA: {filepath} dosyası bulunamadı!")
         return
     
+    if not os.access(filename, os.R_OK):
+        print(f"HATA: {filename} dosyası okunamıyor!")
+        return
+
     # Get file data
-    filesize = os.path.getsize(filename)
+    filesize = os.path.getsize(filepath)
+    filename = os.path.basename(filepath)
 
     # Create Socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     try:
-        # Sonnect Server
+        # Connect Server
         client_socket.connect((ip, port))
         print(f"Sunucuya bağlandı: {ip}:{port}")
         
         # Send file data
-        info = f"{os.path.basename(filename)}|{filesize}|{fragment}|"
+        info = f"{filename}|{filesize}|{fragment}|"
         info_bytes = info.encode('utf-8')
         length = len(info_bytes)
 
@@ -36,7 +41,7 @@ def tcp_send(filename: str, ip: str, port: int, fragment: int):
         print(f"Dosya parça boyutu: {fragment} bytes")
         
         # Send File
-        with open(filename, 'rb') as file:
+        with open(filepath, 'rb') as file:
             bytes_sent = 0
             while bytes_sent < filesize:
                 data = file.read(fragment)
@@ -50,9 +55,9 @@ def tcp_send(filename: str, ip: str, port: int, fragment: int):
         
         print(f"\nDosya başarıyla gönderildi!")
     except Exception as e:
-        print(f"Hata: {e}")
+        print(f"HATA: {e}")
     finally:
         client_socket.close()
 
 if __name__ == "__main__":
-    tcp_send("test.txt", "localhost", 12345, 1024)
+    tcp_send("input/test.txt", "localhost", 12345, 1024)

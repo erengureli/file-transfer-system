@@ -2,13 +2,13 @@ import socket
 import select
 import os
 
-def tcp_receive(foldername: str, port: int):
+def tcp_receive(folderpath: str, port: int):
     # Dir check
-    if not os.path.exists(foldername):
-        os.makedirs(foldername)
-        print(f"Klasör oluşturuldu: {foldername}")
-    elif not os.path.isdir(foldername):
-        print(f"Hata: {foldername} bir klasör değil!")
+    if not os.path.exists(folderpath):
+        os.makedirs(folderpath)
+        print(f"Klasör oluşturuldu: {folderpath}")
+    elif not os.path.isdir(folderpath):
+        print(f"HATA: {folderpath} bir klasör değil!")
         return  
 
     # Create Socket
@@ -43,7 +43,7 @@ def tcp_receive(foldername: str, port: int):
                 print(f"Dosya parça boyutu: {fragment} bytes")
                 
                 # Save file
-                with open(foldername + filename, 'wb') as file:
+                with open(folderpath + filename, 'wb') as file:
                     bytes_received = 0
                     while bytes_received < filesize:
                         data = client_socket.recv(1024)
@@ -66,9 +66,9 @@ def tcp_receive(foldername: str, port: int):
                     client_socket.close()
                     
     except Exception as e:
-        print(f"Sunucu hatası: {e}")
+        print(f"HATA: {e}")
     finally:
         server_socket.close()
 
 if __name__ == "__main__":
-    tcp_receive("data/", "localhost", 12345)
+    tcp_receive("output/", "localhost", 12345)
