@@ -10,9 +10,10 @@ def main():
     protocol_group.add_argument("--tcp", action="store_true", help="Use TCP protocol for file transfer.")
     protocol_group.add_argument("--udp", action="store_true", help="Use UDP protocol for file transfer.")
     protocol_group.add_argument("--ping", action="store_true", help="Use ping protocol for RTT.")
+    protocol_group.add_argument("--bandwidth", action="store_true", help="Use iperf to test bandwidth.")
     
     # Mode selection
-    mode_group = parser.add_mutually_exclusive_group(required=True)
+    mode_group = parser.add_mutually_exclusive_group(required=False)
     mode_group.add_argument("-s", "--send", action="store_true", help="Send file or directory.")
     mode_group.add_argument("-r", "--receive", action="store_true", help="Receive file or directory.")
     
@@ -23,6 +24,14 @@ def main():
     parser.add_argument("-c", "--count", help="Packet count for ping.", type=int, default=5)
     parser.add_argument("-U", "--username", help="Username for authentication.", type=str, default="admin")
     parser.add_argument("-P", "--password", help="Password for authentication.", type=str, default="admin123")
+
+    # iperf Params
+    parser.add_argument("--iserver", help="Password for authentication.", type=str, default="speedtest.serverius.net")
+    parser.add_argument("--iport", help="Password for authentication.", type=int, default=5002)
+    parser.add_argument("--iduration", help="Password for authentication.", type=int, default=15)
+    parser.add_argument("--ipath", help="Password for authentication.", type=str, default="C:\\Users\\ereng\\Downloads\\iperf3.exe")
+    parser.add_argument("--iinter", help="Password for authentication.", type=str, default=None)
+    parser.add_argument("--iexport", help="Password for authentication.", type=str, default="bandwidth_test.json")
 
     args = parser.parse_args()
 
@@ -40,13 +49,16 @@ def main():
         else:
             from utils.udp_receiver import udp_receive
             udp_receive(args.path, args.port, args.username, args.password)
-    else:
+    elif args.ping == True:
         if args.send == True:
             from utils.ping_sender import ping_send
             ping_send(args.ip, args.port, args.count, args.username, args.password)
         else:
             from utils.ping_receiver import ping_receive
             ping_receive(args.port, args.username, args.password)
+    elif args.bandwidth == True:
+        from utils.bandwidth_test import measure_bandwidth
+        measure_bandwidth(args.iserver, args.iport, args.iduration, args.ipath, args.iinter, args.iexport)
 
 
 if __name__ == "__main__":
