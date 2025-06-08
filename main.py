@@ -34,7 +34,12 @@ def main():
             from utils.tcp_receiver import tcp_receive
             tcp_receive(args.path, args.port, args.username, args.password)
     elif args.udp == True:
-        print("UDP")
+        if args.send == True:
+            from utils.udp_sender import udp_send
+            udp_send(args.path, args.ip, args.port, args.fragment, args.username, args.password)
+        else:
+            from utils.udp_receiver import udp_receive
+            udp_receive(args.path, args.port, args.username, args.password)
     else:
         if args.send == True:
             from utils.ping_sender import ping_send
