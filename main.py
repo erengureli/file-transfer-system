@@ -29,7 +29,7 @@ def main():
     parser.add_argument("--iserver", help="Password for authentication.", type=str, default="speedtest.serverius.net")
     parser.add_argument("--iport", help="Password for authentication.", type=int, default=5002)
     parser.add_argument("--iduration", help="Password for authentication.", type=int, default=15)
-    parser.add_argument("--ipath", help="Password for authentication.", type=str, default="C:\\Users\\ereng\\Downloads\\iperf3.exe")
+    parser.add_argument("--ipath", help="Password for authentication.", type=str, default="input\\iperf3.exe")
     parser.add_argument("--iinter", help="Password for authentication.", type=str, default=None)
     parser.add_argument("--iexport", help="Password for authentication.", type=str, default="bandwidth_test.json")
 
