@@ -21,25 +21,27 @@ def main():
     parser.add_argument("-p", "--port", help="Port for sending or receiving files.", type=int, default=12345)
     parser.add_argument("-f", "--fragment", help="Fragment size for sending files.", type=int, default=1024)
     parser.add_argument("-c", "--count", help="Packet count for ping.", type=int, default=5)
+    parser.add_argument("-U", "--username", help="Username for authentication.", type=str, default="admin")
+    parser.add_argument("-P", "--password", help="Password for authentication.", type=str, default="admin123")
 
     args = parser.parse_args()
 
     if args.tcp == True:
         if args.send == True:
             from utils.tcp_sender import tcp_send
-            tcp_send(args.path, args.ip, args.port, args.fragment)
+            tcp_send(args.path, args.ip, args.port, args.fragment, args.username, args.password)
         else:
             from utils.tcp_receiver import tcp_receive
-            tcp_receive(args.path, args.port)
+            tcp_receive(args.path, args.port, args.username, args.password)
     elif args.udp == True:
         print("UDP")
     else:
         if args.send == True:
             from utils.ping_sender import ping_send
-            ping_send(args.ip, args.port, args.count)
+            ping_send(args.ip, args.port, args.count, args.username, args.password)
         else:
             from utils.ping_receiver import ping_receive
-            ping_receive(args.port)
+            ping_receive(args.port, args.username, args.password)
 
 
 if __name__ == "__main__":
