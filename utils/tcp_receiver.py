@@ -6,7 +6,6 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.backends import default_backend
-import secrets
 
 def tcp_receive(folderpath: str, port: int, valid_username: str, valid_password: str):
     # Dir check
@@ -50,8 +49,7 @@ def tcp_receive(folderpath: str, port: int, valid_username: str, valid_password:
             try:
                 ready, _, _ = select.select([server_socket], [], [], 1.0)
                 
-                if not ready:
-                    continue
+                if not ready: continue
 
                 # Accept Connection
                 client_socket, address = server_socket.accept()

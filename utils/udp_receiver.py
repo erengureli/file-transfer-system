@@ -6,9 +6,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.backends import default_backend
-import secrets
 import struct
-import time
 
 def udp_receive(folderpath: str, port: int, valid_username: str, valid_password: str):
     # Dir check
@@ -50,8 +48,7 @@ def udp_receive(folderpath: str, port: int, valid_username: str, valid_password:
             try:
                 ready, _, _ = select.select([server_socket], [], [], 1.0)
                 
-                if not ready:
-                    continue
+                if not ready: continue
 
                 # Receive initial connection request
                 data, client_address = server_socket.recvfrom(1024)
